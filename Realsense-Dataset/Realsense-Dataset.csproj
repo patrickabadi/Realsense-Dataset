@@ -94,5 +94,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibRsds\LibRsds.vcxproj">
+      <Project>{9010449f-3648-4a7c-8ea4-28e63260fcd9}</Project>
+      <Name>LibRsds</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
