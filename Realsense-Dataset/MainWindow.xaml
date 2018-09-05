@@ -5,8 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Realsense_Dataset"
         mc:Ignorable="d"
-        Title="MainWindow" Height="466" Width="353">
+        Title="MainWindow" Height="466" Width="353" Loaded="Window_Loaded">
   <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
 
+    <TextBox Grid.ColumnSpan="3" x:Name="TxtOutput" IsReadOnly="True"/>
+
+    <Button Grid.Column="0" Grid.Row="2" x:Name="BtnStartStop" Height="40" Content="Start" Click="BtnStartStop_Click"/>
   </Grid>
 </Window>
