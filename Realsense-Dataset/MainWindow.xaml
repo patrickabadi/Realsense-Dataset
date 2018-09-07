@@ -13,13 +13,26 @@
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition Height="80"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBox Grid.ColumnSpan="3" x:Name="TxtOutput" IsReadOnly="True"/>
+    <Grid Grid.ColumnSpan="3">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
 
-    <Button Grid.Column="0" Grid.Row="2" x:Name="BtnStartStop" Height="40" Content="Start" Click="BtnStartStop_Click"/>
+      <Image x:Name="colorImage" Stretch="Uniform"/>
+      <Image x:Name="depthImage" Grid.Column="1" Stretch="Uniform"/>
+    </Grid>
+
+    <TextBox Grid.Row="1" Grid.ColumnSpan="3" x:Name="TxtOutput" IsReadOnly="True"/>
+
+    <Button Grid.Column="0" Grid.Row="2" x:Name="BtnStartStop" Height="30" Margin="5" Content="Start" Click="BtnStartStop_Click"/>
+
+    <TextBox x:Name="FolderName" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
   </Grid>
 </Window>

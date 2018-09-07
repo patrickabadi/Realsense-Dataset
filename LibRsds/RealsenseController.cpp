@@ -293,60 +293,6 @@ bool RealsenseController::FillDepthBitmap (unsigned char* pImage, bool colorize)
 
     memcpy ( pImage, pDepthFrame, size );
 
-//    auto pImageFrame = reinterpret_cast<float*>(pImage);
-//
-//    int width = vf->get_width ();
-//    int height = vf->get_height ();
-//
-//    float depth;    
-//    float proximityMin;
-//    unsigned int proximityCount = 0;
-//
-//    // turn this back on if you need to test for absolute minimums on devices
-//    //float minDepth = std::numeric_limits<float>::max ();
-//
-//    if (_deviceType == DeviceType::D435)
-//    {
-//      proximityMin = 270; // in testing on the D435 the absolute min was between 252-256
-//    }
-//    else
-//    {
-//      proximityMin = 430; // for the D415 absolute min was around 409
-//    }
-//
-//#pragma omp parallel for schedule(dynamic) //Using OpenMP to try to parallelise the loop
-//    for (int y = 0; y < height; y++)
-//    {      
-//      for (int x = 0; x < width; x++)
-//      {
-//        auto depth_pixel_index = y * width + x;
-//
-//        depth = (float)pDepthFrame[depth_pixel_index];
-//
-//        // this is an absolute minimum to weed out erroneous values
-//        if (depth > 50.0f && depth < proximityMin)
-//        {
-//          //turn this back on if you need to test for absolute minimums on devices
-//          //minDepth = std::min ( minDepth, depth );
-//
-//          proximityCount++;
-//          validDepth = false;
-//        }        
-//
-//        // Get the depth value of the current pixel in millimeters
-//        pImageFrame[depth_pixel_index] = std::min ( (int)(_depth_scale * depth), 65535 );
-//
-//      }
-//    }
-//
-//    //turn this back on if you need to test for absolute minimums on devices
-//    //DebugOut ( "min depth %f, count %d", proximityMin, proximityCount );
-//
-//    // we need at least a minimum amount of points that break the proximity rule
-//    if (validDepth == false && proximityCount < 20000)
-//    {
-//      validDepth = true;
-//    }
   }     
 
   return validDepth;

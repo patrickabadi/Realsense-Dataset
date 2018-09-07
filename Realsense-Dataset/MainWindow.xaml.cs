@@ -45,9 +45,11 @@ namespace Realsense_Dataset
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _rsds = new RsDsController();
-            
 
-            AddOuput("Initialized");
+            FolderName.Text = "testdata";
+
+            _rsds.Initialize(StatusCallback);
+
         }
 
         protected virtual void StatusCallback(RsDsController.Status status, string description)
@@ -57,27 +59,27 @@ namespace Realsense_Dataset
             switch(status)
             {
                 case RsDsController.Status.Initializing:
-                    AddOuput("Starting up...");
-                    BtnStartStop.IsEnabled = false;
+                    AddOuput("Initializing...");
+                    CapturingEnabled(true);
                     break;
-                case RsDsController.Status.Finalizing:
-                    AddOuput("Stopping...");
-                    BtnStartStop.IsEnabled = false;
+                case RsDsController.Status.Completed:
+                    AddOuput("Initialized");
+                    CapturingEnabled(false);
                     break;
-                case RsDsController.Status.RS_Started:
+                case RsDsController.Status.Started:
                     AddOuput("Started");
-                    BtnStartStop.IsEnabled = true;
+                    CapturingEnabled(false);
                     BtnStartStop.Content = "Stop";
                     ProcessingFrames(true);
                     break;
-                case RsDsController.Status.RS_Stopped:
+                case RsDsController.Status.Stopped:
                     AddOuput("Stopped");
-                    BtnStartStop.IsEnabled = true;
+                    CapturingEnabled(false);
                     BtnStartStop.Content = "Start";
                     break;
                 case RsDsController.Status.ErrorCameraUnplugged:
                     AddOuput("ERROR: Camera unplugged");
-                    BtnStartStop.IsEnabled = true;
+                    CapturingEnabled(false);
                     BtnStartStop.Content = "Start";
                     break;
                 default:
@@ -94,15 +96,17 @@ namespace Realsense_Dataset
             switch (_rsds.State)
             {
                 case RsDsController.StateType.Initializing:
-                case RsDsController.StateType.Stopping:
-                    return;
+                    return;                
                 case RsDsController.StateType.Started:
                     ProcessingFrames(false);
                     _rsds.Stop();
                     break;
                 case RsDsController.StateType.Stopped:
-                    _rsds.Initialize("testdata", StatusCallback);
-                    _rsds.Start();
+                case RsDsController.StateType.Initialized:
+                    if (string.IsNullOrWhiteSpace(FolderName.Text))
+                        FolderName.Text = "testdata";
+                    
+                    _rsds.Start(FolderName.Text);
                     break;
             }
         }
@@ -129,11 +133,43 @@ namespace Realsense_Dataset
                 {
                     await Task.Delay(1);
 
-                    _rsds.ProcessFrame();
+                    var completion = new TaskCompletionSource<bool>();
+
+                    // do it in a thread so it doesn't tie up the ui
+                    await Task.Run(() =>
+                    {
+                        _rsds.ProcessFrame();
+                        completion.SetResult(true);
+                    });
+
+                    await completion.Task;
+
+                    _rsds.ProcessBitmapImage();
+
+                    colorImage.Source = _rsds.GetColorBitmap();
+                    depthImage.Source = _rsds.GetDepthBitmap();
                 }
 
             };
             timer.Start();
+        }
+
+        protected void CapturingEnabled(bool enabled)
+        {
+            if(enabled)
+            {
+                BtnStartStop.IsEnabled = false;
+                FolderName.IsEnabled = false;
+                colorImage.Source = null;
+                depthImage.Source = null;
+            }
+            else
+            {
+                BtnStartStop.IsEnabled = true;
+                FolderName.IsEnabled = true;
+                colorImage.Source = null;
+                depthImage.Source = null;
+            }
         }
     }
 }

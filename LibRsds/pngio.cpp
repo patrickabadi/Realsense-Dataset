@@ -125,22 +125,6 @@ void common::pngio::WriteBlockAt (const png_uint_16 x, const png_uint_16 y, int 
   }
   else if (color_type_ == png_color_type::GRAY)
   {
-    //auto shortData = reinterpret_cast<const png_uint_16p>(data);
-    //for (int i = 0; i < blockHeight; i++)
-    //{
-    //  png_uint_16p row = (png_uint_16p)row_pointers_[y + i];
-    //  for (int j = 0; j < blockWidth; j++)
-    //  {
-    //    idx = (i * blockWidth + j);
-    //    // added i*j for debug black lines
-    //    auto r = shortData[idx];
-
-    //    auto px = &(row[(x + j)]);
-    //    px[0] = r;
-
-    //  }
-    //}
-
     for (int i = 0; i < blockHeight; i++)
     {
       png_bytep row = row_pointers_[y + i];
@@ -152,6 +136,8 @@ void common::pngio::WriteBlockAt (const png_uint_16 x, const png_uint_16 y, int 
         auto g = data[idx + 1];
 
         png_bytep px = &(row[(x + j) * 2]);
+
+        // NOTE: I'm swaping order to make it work, blame the endiens
         px[0] = (png_byte)g;
         px[1] = (png_byte)r;
 
