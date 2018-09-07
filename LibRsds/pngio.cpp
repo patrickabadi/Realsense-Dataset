@@ -78,25 +78,87 @@ void common::pngio::WriteBlockAt (const png_uint_16 x, const png_uint_16 y, int 
   }
 
   int idx;
-  for (int i = 0; i < blockHeight; i++) 
-  {
-    png_bytep row = row_pointers_[y+blockHeight-1-i];
-    for (int j=0; j< blockWidth; j++ )
-    {
-      idx = 4 * (i * blockWidth + j);
-      // added i*j for debug black lines
-      auto r = data[idx];
-      auto g = data[idx + 1];
-      auto b = data[idx + 2];
-      auto a = data[idx + 3];
 
-      png_bytep px = &(row[(x+j) * 4]);
-      px[0] = (png_byte)r;
-      px[1] = (png_byte)g;
-      px[2] = (png_byte)b;
-      px[3] = (png_byte)a;
+  if (color_type_ == png_color_type::RGB)
+  {
+    for (int i = 0; i < blockHeight; i++)
+    {
+      png_bytep row = row_pointers_[y + i];
+      for (int j = 0; j < blockWidth; j++)
+      {
+        idx = 3 * (i * blockWidth + j);
+        // added i*j for debug black lines
+        auto r = data[idx];
+        auto g = data[idx + 1];
+        auto b = data[idx + 2];
+        //auto a = data[idx + 3];
+
+        png_bytep px = &(row[(x + j) * 3]);
+        px[0] = (png_byte)r;
+        px[1] = (png_byte)g;
+        px[2] = (png_byte)b;
+        //px[3] = (png_byte)a;
+      }
     }
   }
+  else if (color_type_ == png_color_type::RGB_A)
+  {
+    for (int i = 0; i < blockHeight; i++)
+    {
+      png_bytep row = row_pointers_[y + i];
+      for (int j = 0; j < blockWidth; j++)
+      {
+        idx = 4 * (i * blockWidth + j);
+        // added i*j for debug black lines
+        auto r = data[idx];
+        auto g = data[idx + 1];
+        auto b = data[idx + 2];
+        auto a = data[idx + 3];
+
+        png_bytep px = &(row[(x + j) * 4]);
+        px[0] = (png_byte)r;
+        px[1] = (png_byte)g;
+        px[2] = (png_byte)b;
+        px[3] = (png_byte)a;
+      }
+    }
+  }
+  else if (color_type_ == png_color_type::GRAY)
+  {
+    //auto shortData = reinterpret_cast<const png_uint_16p>(data);
+    //for (int i = 0; i < blockHeight; i++)
+    //{
+    //  png_uint_16p row = (png_uint_16p)row_pointers_[y + i];
+    //  for (int j = 0; j < blockWidth; j++)
+    //  {
+    //    idx = (i * blockWidth + j);
+    //    // added i*j for debug black lines
+    //    auto r = shortData[idx];
+
+    //    auto px = &(row[(x + j)]);
+    //    px[0] = r;
+
+    //  }
+    //}
+
+    for (int i = 0; i < blockHeight; i++)
+    {
+      png_bytep row = row_pointers_[y + i];
+      for (int j = 0; j < blockWidth; j++)
+      {
+        idx = 2 * (i * blockWidth + j);
+        // added i*j for debug black lines
+        auto r = data[idx];
+        auto g = data[idx + 1];
+
+        png_bytep px = &(row[(x + j) * 2]);
+        px[0] = (png_byte)g;
+        px[1] = (png_byte)r;
+
+      }
+    }
+  }
+  
 }
 
 void common::pngio::allocate_memory ()
@@ -109,12 +171,14 @@ void common::pngio::allocate_memory ()
   if (!png_info_)
     return;
 
+  bit_depth_ = color_type_ == png_color_type::GRAY ? 16 : 8;
+
   png_set_IHDR (
     png_,
     png_info_,
     width_,
     height_,
-    8,
+    bit_depth_,
     color_type_,
     PNG_INTERLACE_NONE,
     PNG_COMPRESSION_TYPE_DEFAULT,

@@ -22,6 +22,8 @@ RealsenseController::RealsenseController ()
   , _is_thread_running (false)
   , _thread (nullptr)
   , _mutex (nullptr)
+  , _frame_aquired_count (0)
+  , _frame_encoded_count (0)
   , _color_frame_queue (nullptr)
   , _depth_frame_queue (nullptr)
   , _color_frame (nullptr)
@@ -33,7 +35,6 @@ RealsenseController::RealsenseController ()
 {
 
 }
-
 
 RealsenseController::~RealsenseController ()
 {
@@ -64,6 +65,9 @@ bool RealsenseController::Start () try
   _depth_frame = new rs2::frame ();
   _colorizer = new rs2::colorizer ();  
   _pc = new rs2::pointcloud ();
+
+  _frame_aquired_count = 0;
+  _frame_encoded_count = 0;
 
   _is_thread_running = true;  
 
@@ -158,6 +162,8 @@ void RealsenseController::ThreadRun () try
 
         _color_frame_queue->enqueue ( color_frame );
         _depth_frame_queue->enqueue ( depth_frame );
+
+        _frame_aquired_count++;
       }      
     }
 
@@ -283,64 +289,93 @@ bool RealsenseController::FillDepthBitmap (unsigned char* pImage, bool colorize)
 
     auto pDepthFrame = reinterpret_cast<unsigned short*>(const_cast<void*>(vf->get_data ()));
 
-    auto pImageFrame = reinterpret_cast<unsigned short*>(pImage);
+    auto size = vf->get_bytes_per_pixel () * vf->get_width () * vf->get_height ();
 
-    int width = vf->get_width ();
-    int height = vf->get_height ();
+    memcpy ( pImage, pDepthFrame, size );
 
-    float depth;    
-    float proximityMin;
-    unsigned int proximityCount = 0;
-
-    // turn this back on if you need to test for absolute minimums on devices
-    //float minDepth = std::numeric_limits<float>::max ();
-
-    if (_deviceType == DeviceType::D435)
-    {
-      proximityMin = 270; // in testing on the D435 the absolute min was between 252-256
-    }
-    else
-    {
-      proximityMin = 430; // for the D415 absolute min was around 409
-    }
-
-#pragma omp parallel for schedule(dynamic) //Using OpenMP to try to parallelise the loop
-    for (int y = 0; y < height; y++)
-    {      
-      for (int x = 0; x < width; x++)
-      {
-        auto depth_pixel_index = y * width + x;
-
-        depth = (float)pDepthFrame[depth_pixel_index];
-
-        // this is an absolute minimum to weed out erroneous values
-        if (depth > 50.0f && depth < proximityMin)
-        {
-          //turn this back on if you need to test for absolute minimums on devices
-          //minDepth = std::min ( minDepth, depth );
-
-          proximityCount++;
-          validDepth = false;
-        }        
-
-        // Get the depth value of the current pixel in millimeters
-        // NOTE: Recfusion expects depth to be in 0.1mm (don't ask me why)    
-        pImageFrame[depth_pixel_index] = std::min ( (int)(_depth_scale * depth), 65535 );
-
-      }
-    }
-
-    //turn this back on if you need to test for absolute minimums on devices
-    //DebugOut ( "min depth %f, count %d", proximityMin, proximityCount );
-
-    // we need at least a minimum amount of points that break the proximity rule
-    if (validDepth == false && proximityCount < 20000)
-    {
-      validDepth = true;
-    }
+//    auto pImageFrame = reinterpret_cast<float*>(pImage);
+//
+//    int width = vf->get_width ();
+//    int height = vf->get_height ();
+//
+//    float depth;    
+//    float proximityMin;
+//    unsigned int proximityCount = 0;
+//
+//    // turn this back on if you need to test for absolute minimums on devices
+//    //float minDepth = std::numeric_limits<float>::max ();
+//
+//    if (_deviceType == DeviceType::D435)
+//    {
+//      proximityMin = 270; // in testing on the D435 the absolute min was between 252-256
+//    }
+//    else
+//    {
+//      proximityMin = 430; // for the D415 absolute min was around 409
+//    }
+//
+//#pragma omp parallel for schedule(dynamic) //Using OpenMP to try to parallelise the loop
+//    for (int y = 0; y < height; y++)
+//    {      
+//      for (int x = 0; x < width; x++)
+//      {
+//        auto depth_pixel_index = y * width + x;
+//
+//        depth = (float)pDepthFrame[depth_pixel_index];
+//
+//        // this is an absolute minimum to weed out erroneous values
+//        if (depth > 50.0f && depth < proximityMin)
+//        {
+//          //turn this back on if you need to test for absolute minimums on devices
+//          //minDepth = std::min ( minDepth, depth );
+//
+//          proximityCount++;
+//          validDepth = false;
+//        }        
+//
+//        // Get the depth value of the current pixel in millimeters
+//        pImageFrame[depth_pixel_index] = std::min ( (int)(_depth_scale * depth), 65535 );
+//
+//      }
+//    }
+//
+//    //turn this back on if you need to test for absolute minimums on devices
+//    //DebugOut ( "min depth %f, count %d", proximityMin, proximityCount );
+//
+//    // we need at least a minimum amount of points that break the proximity rule
+//    if (validDepth == false && proximityCount < 20000)
+//    {
+//      validDepth = true;
+//    }
   }     
 
   return validDepth;
+}
+
+bool RealsenseController::EncodeFrame ( unsigned char* pColor, unsigned char* pDepth)
+{
+  if (!_is_running || !_color_frame_queue || !_depth_frame_queue || !_thread || !_mutex)
+    return false;
+
+  bool ret = false;
+
+  {
+    std::lock_guard<std::mutex> guard ( *_mutex );
+
+    if (_color_frame_queue->poll_for_frame ( _color_frame ) && _depth_frame_queue->poll_for_frame ( _depth_frame ))
+    {
+      _frame_encoded_count++;
+      ret = true;
+    }
+  }
+
+  if(!ret)
+    return false;
+
+  FillColorBitmap ( pColor );
+  FillDepthBitmap ( pDepth, false );
+
+  return true;
 }
 
 void RealsenseController::InvokeState (RSState state)

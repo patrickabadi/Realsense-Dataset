@@ -25,6 +25,7 @@ namespace Realsense_Dataset
     public partial class MainWindow : Window
     {
         private RsDsController _rsds;
+        private bool _running;
 
         public MainWindow()
         {
@@ -44,6 +45,7 @@ namespace Realsense_Dataset
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _rsds = new RsDsController();
+            
 
             AddOuput("Initialized");
         }
@@ -66,6 +68,7 @@ namespace Realsense_Dataset
                     AddOuput("Started");
                     BtnStartStop.IsEnabled = true;
                     BtnStartStop.Content = "Stop";
+                    ProcessingFrames(true);
                     break;
                 case RsDsController.Status.RS_Stopped:
                     AddOuput("Stopped");
@@ -76,6 +79,10 @@ namespace Realsense_Dataset
                     AddOuput("ERROR: Camera unplugged");
                     BtnStartStop.IsEnabled = true;
                     BtnStartStop.Content = "Start";
+                    break;
+                default:
+                    if(!string.IsNullOrEmpty(description))
+                        AddOuput(description);
                     break;
             }
 
@@ -90,12 +97,43 @@ namespace Realsense_Dataset
                 case RsDsController.StateType.Stopping:
                     return;
                 case RsDsController.StateType.Started:
+                    ProcessingFrames(false);
                     _rsds.Stop();
                     break;
                 case RsDsController.StateType.Stopped:
+                    _rsds.Initialize("testdata", StatusCallback);
                     _rsds.Start();
                     break;
             }
+        }
+
+        protected void ProcessingFrames(bool start)
+        {
+            if (_running == start)
+                return;
+
+            if (!start)
+            {
+                _running = false;
+                return;
+            }
+
+            _running = true;
+
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+            timer.Tick += async (s, args) =>
+            {
+                timer.Stop();
+
+                while (_running)
+                {
+                    await Task.Delay(1);
+
+                    _rsds.ProcessFrame();
+                }
+
+            };
+            timer.Start();
         }
     }
 }

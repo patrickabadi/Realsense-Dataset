@@ -99,6 +99,10 @@ namespace RS
     int GetDepthHeight () { return _depth_height; }
     bool FillDepthBitmap (unsigned char* pImage, bool colorize);
 
+    bool EncodeFrame ( unsigned char* pColor, unsigned char* pDepth );
+    int GetFramesAcquired () { return _frame_aquired_count; }
+    int GetFramesEncoded () { return _frame_encoded_count; }
+
   protected:
     void ThreadRun ();
     void InvokeState (RSState state);
@@ -121,6 +125,9 @@ namespace RS
 
     rs2::frame_queue* _color_frame_queue;
     rs2::frame_queue* _depth_frame_queue;
+
+    int _frame_aquired_count;
+    int _frame_encoded_count;
 
     rs2::frame* _color_frame;
     rs2::frame* _depth_frame;
