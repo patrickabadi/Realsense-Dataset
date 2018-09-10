@@ -133,16 +133,19 @@ namespace Realsense_Dataset
                 {
                     await Task.Delay(1);
 
-                    var completion = new TaskCompletionSource<bool>();
+                    //var completion = new TaskCompletionSource<bool>();
 
-                    // do it in a thread so it doesn't tie up the ui
-                    await Task.Run(() =>
-                    {
-                        _rsds.ProcessFrame();
-                        completion.SetResult(true);
-                    });
+                    //// do it in a thread so it doesn't tie up the ui
+                    //await Task.Run(() =>
+                    //{
+                    //    _rsds.ProcessFrame();
+                    //    completion.SetResult(true);
+                    //});
 
-                    await completion.Task;
+                    //await completion.Task;
+
+                    if (!_rsds.ProcessFrame())
+                        continue;
 
                     _rsds.ProcessBitmapImage();
 
