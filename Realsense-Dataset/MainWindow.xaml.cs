@@ -77,6 +77,10 @@ namespace Realsense_Dataset
                     CapturingEnabled(false);
                     BtnStartStop.Content = "Start";
                     break;
+                case RsDsController.Status.Finalizing:
+                    AddOuput("Finalizing...");
+                    CapturingEnabled(true);
+                    break;
                 case RsDsController.Status.ErrorCameraUnplugged:
                     AddOuput("ERROR: Camera unplugged");
                     CapturingEnabled(false);
@@ -98,7 +102,6 @@ namespace Realsense_Dataset
                 case RsDsController.StateType.Initializing:
                     return;                
                 case RsDsController.StateType.Started:
-                    ProcessingFrames(false);
                     _rsds.Stop();
                     break;
                 case RsDsController.StateType.Stopped:

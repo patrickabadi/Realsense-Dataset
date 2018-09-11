@@ -68,7 +68,7 @@ void EncodeFrames::Stop ()
 
 void EncodeFrames::QueueFrame ( unsigned char * colorImage, int colorSize, unsigned char * depthImage, int depthSize )
 {
-  if (!_mutex)
+  if (!_mutex || !_is_running || !_is_thread_running || !colorImage || !depthImage)
     return;
 
   EFrame frame;
