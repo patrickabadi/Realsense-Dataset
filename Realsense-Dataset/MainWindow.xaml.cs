@@ -47,6 +47,7 @@ namespace Realsense_Dataset
             _rsds = new RsDsController();
 
             FolderName.Text = "testdata";
+            TargetFPS.Text = "2.0";
 
             _rsds.Initialize(StatusCallback);
 
@@ -69,13 +70,13 @@ namespace Realsense_Dataset
                 case RsDsController.Status.Started:
                     AddOuput("Started");
                     CapturingEnabled(false);
-                    BtnStartStop.Content = "Stop";
+                    BtnStartStop.Content = "STOP";
                     ProcessingFrames(true);
                     break;
                 case RsDsController.Status.Stopped:
                     AddOuput("Stopped");
                     CapturingEnabled(false);
-                    BtnStartStop.Content = "Start";
+                    BtnStartStop.Content = "START";
                     break;
                 case RsDsController.Status.Finalizing:
                     AddOuput("Finalizing...");
@@ -84,7 +85,7 @@ namespace Realsense_Dataset
                 case RsDsController.Status.ErrorCameraUnplugged:
                     AddOuput("ERROR: Camera unplugged");
                     CapturingEnabled(false);
-                    BtnStartStop.Content = "Start";
+                    BtnStartStop.Content = "START";
                     break;
                 default:
                     if(!string.IsNullOrEmpty(description))
@@ -108,8 +109,12 @@ namespace Realsense_Dataset
                 case RsDsController.StateType.Initialized:
                     if (string.IsNullOrWhiteSpace(FolderName.Text))
                         FolderName.Text = "testdata";
+
+                    float targetFPS;
+                    if (string.IsNullOrEmpty(TargetFPS.Text) || !float.TryParse(TargetFPS.Text, out targetFPS))
+                        targetFPS = 2.0f;
                     
-                    _rsds.Start(FolderName.Text);
+                    _rsds.Start(FolderName.Text, targetFPS);
                     break;
             }
         }
