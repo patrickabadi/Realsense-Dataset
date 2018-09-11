@@ -8,7 +8,7 @@ WPF frontend app with CLR c++ class library to capture realsense data and export
 For my x64 build mine is `D:\dev\vcpkg\installed\x64-windows\`
 
 ## The App
-<img src="./Screenshots/app.png" width="400" />
+<img src="./Screenshots/app.gif" width="300" />
 You can start and stop a capture and enter in your folder name that you would like to save images to
 
 ## Results
