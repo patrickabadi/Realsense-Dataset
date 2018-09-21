@@ -223,15 +223,21 @@ void RealsenseController::Stop (bool fullStop)
 
 bool RealsenseController::ProcessFrame () try
 {
-  if (!_is_running || !_color_frame_queue || !_depth_frame_queue || !_thread || !_mutex)
+  if (
+    !_is_running || 
+    !_color_frame_queue || 
+    !_depth_frame_queue || 
+    !_thread || 
+    !_mutex)
     return false;
 
   bool ret = false;
 
   {
-    std::lock_guard<std::mutex> guard (*_mutex);
+    std::lock_guard<std::mutex> guard (*_mutex);    
 
-    if (_color_frame_queue->poll_for_frame (_color_frame) && _depth_frame_queue->poll_for_frame(_depth_frame))
+    if (_color_frame_queue->poll_for_frame (_color_frame) && 
+      _depth_frame_queue->poll_for_frame(_depth_frame))
     {
       ret = true;
     }
@@ -298,9 +304,68 @@ bool RealsenseController::FillDepthBitmap (unsigned char* pImage, bool colorize)
   return validDepth;
 }
 
-bool RealsenseController::EncodeFrame ( unsigned char* pColor, unsigned char* pDepth)
+pcl::RGB GetTextureColor ( const rs2::video_frame& texture, float u, float v )
 {
-  if (!_is_running || !_color_frame_queue || !_depth_frame_queue || !_thread || !_mutex)
+  const int w = texture.get_width (), h = texture.get_height ();
+  int x = std::min ( std::max ( int ( u*w + .5f ), 0 ), w - 1 );
+  int y = std::min ( std::max ( int ( v*h + .5f ), 0 ), h - 1 );
+  int idx = x * texture.get_bytes_per_pixel () + y * texture.get_stride_in_bytes ();
+  const auto texture_data = reinterpret_cast<const uint8_t*>(texture.get_data ());
+
+  pcl::RGB rgb;
+  rgb.r = texture_data[idx];
+  rgb.g = texture_data[idx + 1];
+  rgb.b = texture_data[idx + 2];
+  return rgb;
+}
+
+bool RS::RealsenseController::FillPointCloud ( pcl::PointCloud<pcl::PointXYZRGB>* pcd )
+{
+  if (!pcd || !_depth_frame || !_color_frame)
+    return false;
+
+  // Generate the pointcloud and texture mappings
+  auto points = _pc->calculate ( *_depth_frame );
+
+  // Tell pointcloud object to map to this color frame
+  _pc->map_to ( *_color_frame );
+
+  auto sp = points.get_profile ().as<rs2::video_stream_profile> ();
+  pcd->width = sp.width ();
+  pcd->height = sp.height ();
+  pcd->is_dense = false;
+  pcd->points.resize ( points.size () );
+
+  const auto cloud_vertices_ptr = points.get_vertices ();
+  const auto cloud_texture_ptr = points.get_texture_coordinates ();
+
+#ifdef _OPENMP
+#pragma omp parallel for 
+#endif
+  for (int index = 0; index < pcd->points.size (); ++index)
+  {
+    const auto ptr = cloud_vertices_ptr + index;
+    const auto uvptr = cloud_texture_ptr + index;
+    auto& p = pcd->points[index];
+
+    p.x = ptr->x;
+    p.y = ptr->y;
+    p.z = ptr->z;
+
+    auto clr = GetTextureColor ( *_color_frame, uvptr->u, uvptr->v );
+
+    p.r = clr.r;
+    p.g = clr.g;
+    p.b = clr.b;
+  }
+
+  return true;
+
+}
+
+bool RealsenseController::EncodeFrame ( unsigned char* pColor, unsigned char* pDepth, pcl::PointCloud<pcl::PointXYZRGB>* pcd )
+{
+  if (!_is_running || !_color_frame_queue || !_depth_frame_queue || !_thread || !_mutex || !pcd || !_pc )
     return false;
 
   bool ret = false;
@@ -312,12 +377,13 @@ bool RealsenseController::EncodeFrame ( unsigned char* pColor, unsigned char* pD
     {
       _frame_encoded_count++;
       ret = true;
-    }
+    }      
   }
 
   if(!ret)
     return false;
 
+  FillPointCloud ( pcd );
   FillColorBitmap ( pColor );
   FillDepthBitmap ( pDepth, false );
 

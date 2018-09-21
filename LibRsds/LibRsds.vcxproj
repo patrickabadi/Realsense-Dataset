@@ -106,8 +106,8 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>realsense2_d.lib;libpng16d.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VCPKG_ROOT_X64)debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>realsense2.lib;libpng16.lib;boost_system-vc140-mt.lib;boost_filesystem-vc140-mt.lib;boost_thread-vc140-mt.lib;boost_date_time-vc140-mt.lib;boost_iostreams-vc140-mt.lib;boost_chrono-vc140-mt.lib;boost_atomic-vc140-mt.lib;boost_regex-vc140-mt.lib;vtkCommonCore-8.1.lib;pcl_features_release.lib;pcl_io_release.lib;pcl_filters_release.lib;pcl_search_release.lib;pcl_kdtree_release.lib;pcl_octree_release.lib;pcl_sample_consensus_release.lib;pcl_common_release.lib;pcl_io_ply_release.lib;pcl_segmentation_release.lib;flann_cpp.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VCPKG_ROOT_X64)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,7 +129,7 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>realsense2.lib;libpng16.lib</AdditionalDependencies>
+      <AdditionalDependencies>realsense2.lib;libpng16.lib;boost_system-vc140-mt.lib;boost_filesystem-vc140-mt.lib;boost_thread-vc140-mt.lib;boost_date_time-vc140-mt.lib;boost_iostreams-vc140-mt.lib;boost_chrono-vc140-mt.lib;boost_atomic-vc140-mt.lib;boost_regex-vc140-mt.lib;vtkCommonCore-8.1.lib;pcl_features_release.lib;pcl_io_release.lib;pcl_filters_release.lib;pcl_search_release.lib;pcl_kdtree_release.lib;pcl_octree_release.lib;pcl_sample_consensus_release.lib;pcl_common_release.lib;pcl_io_ply_release.lib;pcl_segmentation_release.lib;flann_cpp.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VCPKG_ROOT_X64)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

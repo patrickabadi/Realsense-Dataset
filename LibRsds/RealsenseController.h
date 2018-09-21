@@ -1,5 +1,15 @@
 #pragma once
 
+// See: https://svn.boost.org/trac10/ticket/11855
+#define generic __identifier(generic)
+#include <boost/filesystem.hpp>
+#undef generic
+
+#include <pcl/io/obj_io.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/conversions.h>
+
+
 namespace rs2
 {
   class pipeline;
@@ -98,8 +108,9 @@ namespace RS
     int GetDepthWidth () { return _depth_width; }
     int GetDepthHeight () { return _depth_height; }
     bool FillDepthBitmap (unsigned char* pImage, bool colorize);
+    bool FillPointCloud ( pcl::PointCloud<pcl::PointXYZRGB>* pcd );
 
-    bool EncodeFrame ( unsigned char* pColor, unsigned char* pDepth );
+    bool EncodeFrame ( unsigned char* pColor, unsigned char* pDepth, pcl::PointCloud<pcl::PointXYZRGB>* pcd );
     int GetFramesAcquired () { return _frame_aquired_count; }
     int GetFramesEncoded () { return _frame_encoded_count; }
 

@@ -15,6 +15,7 @@ namespace EF
     int colorSize;
     unsigned char* depthImage;
     int depthSize;
+    pcl::PointCloud<pcl::PointXYZRGB>* pcd;
   };
 
   class EncodeFrames
@@ -25,7 +26,7 @@ namespace EF
 
     void Run ( RealsenseController* realsense, std::string path );
     void Stop ();
-    void QueueFrame ( unsigned char * colorImage, int colorSize, unsigned char * depthImage, int depthSize );
+    void QueueFrame ( unsigned char * colorImage, int colorSize, unsigned char * depthImage, int depthSize, pcl::PointCloud<pcl::PointXYZRGB>* pcd );
     bool IsRunning () { return _is_running; }
     int QueueCount ();
 
