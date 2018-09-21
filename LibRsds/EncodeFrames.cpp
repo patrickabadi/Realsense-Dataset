@@ -143,7 +143,7 @@ void EncodeFrames::ThreadRun ()
         fs::path path = _path;
         fs::path colorFilename = path / Format ( "rgb\\%06d.png", _currentFrame );
         fs::path depthFilename = path / Format ( "depth\\%06d.png", _currentFrame );
-        fs::path pcdFilename = path / Format ( "pcd\\%06d.ply", _currentFrame );
+        fs::path pcdFilename = path / Format ( "pcd\\%06d.pcd", _currentFrame );
 
         _currentFrame++;
 
@@ -155,8 +155,8 @@ void EncodeFrames::ThreadRun ()
         pngDepth.WriteBlockAt ( 0, 0, _realsense->GetDepthWidth (), _realsense->GetDepthHeight (), item.depthImage );
         pngDepth.Save ( depthFilename.string ().c_str () );
 
-        pcl::io::savePLYFile < pcl::PointXYZRGB > ( pcdFilename.string (), *item.pcd, false );
-        //pcl::io::savePCDFile < pcl::PointXYZRGB > ( pcdFilename.string (), *item.pcd, false );
+        //pcl::io::savePLYFile < pcl::PointXYZRGB > ( pcdFilename.string (), *item.pcd, false );
+        pcl::io::savePCDFile < pcl::PointXYZRGB > ( pcdFilename.string (), *item.pcd, false );
       }      
 
       DEL ( item.colorImage );

@@ -107,7 +107,7 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(VCPKG_ROOT_X64)bin\*.dll" "$(SolutionDir)Realsense-Dataset\bin\Debug\*" /y /d
+    <PostBuildEvent>xcopy "$(VCPKG_ROOT_X64)debug\bin\*.dll" "$(SolutionDir)Realsense-Dataset\bin\Debug\*" /y /d
 xcopy "$(VCPKG_ROOT_X64)bin\*.dll" "$(SolutionDir)Realsense-Dataset\bin\Release\*" /y /d</PostBuildEvent>
   </PropertyGroup>
 </Project>
